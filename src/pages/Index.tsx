@@ -6,6 +6,7 @@ import { ScriptHubPage } from "@/components/ScriptHubPage";
 import { ClientManagerPage } from "@/components/ClientManagerPage";
 import { SettingsPage } from "@/components/SettingsPage";
 import { CreditsPage } from "@/components/CreditsPage";
+import { ExecutorProvider } from "@/context/executor-context";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("executor");
@@ -31,17 +32,17 @@ const Index = () => {
   };
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden">
-      <Sidebar
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        collapsed={sidebarCollapsed}
-        setCollapsed={setSidebarCollapsed}
-      />
-      <main className="flex-1 flex flex-col overflow-hidden">
-        {renderPage()}
-      </main>
-    </div>
+    <ExecutorProvider>
+      <div className="flex h-screen bg-background overflow-hidden">
+        <Sidebar
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          collapsed={sidebarCollapsed}
+          setCollapsed={setSidebarCollapsed}
+        />
+        <main className="flex-1 flex flex-col overflow-hidden">{renderPage()}</main>
+      </div>
+    </ExecutorProvider>
   );
 };
 

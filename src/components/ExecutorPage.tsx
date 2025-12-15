@@ -1,9 +1,10 @@
-import { useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { InstanceSelector } from "./InstanceSelector";
 import { ScriptTabs } from "./ScriptTabs";
 import { CodeEditor } from "./CodeEditor";
 import { ActionToolbar } from "./ActionToolbar";
+import { useExecutor } from "@/context/executor-context";
 
 interface Script {
   id: string;
@@ -12,24 +13,28 @@ interface Script {
 }
 
 export function ExecutorPage() {
-  const [selectedInstances, setSelectedInstances] = useState<string[]>([]);
-  const [scripts, setScripts] = useState<Script[]>([
-    { id: "1", name: "Script 1", content: "" },
-  ]);
+  const {
+    selectedInstanceIds,
+    setSelectedInstanceIds,
+    isAttached,
+    attach,
+    detach,
+  } = useExecutor();
+
+  const [scripts, setScripts] = useState<Script[]>([{ id: "1", name: "Script 1", content: "" }]);
   const [activeScript, setActiveScript] = useState("1");
-  const [isAttached, setIsAttached] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const currentScript = scripts.find((s) => s.id === activeScript);
 
   const updateScriptContent = (content: string) => {
-    setScripts(scripts.map((s) => (s.id === activeScript ? { ...s, content } : s)));
+    setScripts((prev) => prev.map((s) => (s.id === activeScript ? { ...s, content } : s)));
   };
 
   const addScript = () => {
     const newId = String(Date.now());
     const newScript = { id: newId, name: `Script ${scripts.length + 1}`, content: "" };
-    setScripts([...scripts, newScript]);
+    setScripts((prev) => [...prev, newScript]);
     setActiveScript(newId);
   };
 
@@ -37,15 +42,36 @@ export function ExecutorPage() {
     if (scripts.length === 1) return;
     const newScripts = scripts.filter((s) => s.id !== id);
     setScripts(newScripts);
-    if (activeScript === id) {
-      setActiveScript(newScripts[0].id);
-    }
+    if (activeScript === id) setActiveScript(newScripts[0].id);
   };
+
+  // Pick up scripts loaded from Script Hub
+  useEffect(() => {
+    const raw = localStorage.getItem("loadedScript");
+    if (!raw) return;
+
+    try {
+      const parsed = JSON.parse(raw) as { name?: string; content?: string };
+      if (parsed?.content) {
+        setScripts((prev) =>
+          prev.map((s) => (s.id === activeScript ? { ...s, name: parsed.name || s.name, content: parsed.content } : s))
+        );
+        toast.success("Script loaded", {
+          description: parsed.name || "Loaded from Script Hub",
+        });
+      }
+    } catch {
+      // ignore
+    } finally {
+      localStorage.removeItem("loadedScript");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleExecute = () => {
     if (!isAttached) {
-      toast.error("Not attached to any instance", {
-        description: "Please attach to a Roblox instance first",
+      toast.error("Not attached", {
+        description: "Attach to a Roblox instance first.",
       });
       return;
     }
@@ -56,30 +82,16 @@ export function ExecutorPage() {
       return;
     }
     toast.success("Script executed", {
-      description: `Executed on ${selectedInstances.length || 1} instance(s)`,
+      description: `Executed on ${selectedInstanceIds.length} instance(s)`,
     });
   };
 
-  const handleAttach = () => {
-    if (selectedInstances.length === 0) {
-      toast.error("No instance selected", {
-        description: "Please select at least one instance to attach",
-      });
-      return;
-    }
-    setIsAttached(!isAttached);
-    if (!isAttached) {
-      toast.success("Attached successfully", {
-        description: `Attached to ${selectedInstances.length} instance(s)`,
-      });
-    } else {
-      toast.info("Detached from instances");
-    }
+  const handleAttachToggle = () => {
+    if (isAttached) detach();
+    else attach();
   };
 
-  const handleOpen = () => {
-    fileInputRef.current?.click();
-  };
+  const handleOpen = () => fileInputRef.current?.click();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -88,10 +100,8 @@ export function ExecutorPage() {
       reader.onload = (event) => {
         const content = event.target?.result as string;
         updateScriptContent(content);
-        setScripts(scripts.map((s) => (s.id === activeScript ? { ...s, name: file.name.replace(".lua", "") } : s)));
-        toast.success("File loaded", {
-          description: file.name,
-        });
+        setScripts((prev) => prev.map((s) => (s.id === activeScript ? { ...s, name: file.name.replace(".lua", "") } : s)));
+        toast.success("File loaded", { description: file.name });
       };
       reader.readAsText(file);
     }
@@ -100,9 +110,7 @@ export function ExecutorPage() {
 
   const handleSave = () => {
     if (!currentScript?.content.trim()) {
-      toast.error("Nothing to save", {
-        description: "The script is empty",
-      });
+      toast.error("Nothing to save", { description: "The script is empty" });
       return;
     }
     const blob = new Blob([currentScript.content], { type: "text/plain" });
@@ -112,9 +120,7 @@ export function ExecutorPage() {
     a.download = `${currentScript.name}.lua`;
     a.click();
     URL.revokeObjectURL(url);
-    toast.success("File saved", {
-      description: `${currentScript.name}.lua`,
-    });
+    toast.success("File saved", { description: `${currentScript.name}.lua` });
   };
 
   const handleClear = () => {
@@ -127,10 +133,7 @@ export function ExecutorPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <InstanceSelector
-            selectedInstances={selectedInstances}
-            setSelectedInstances={setSelectedInstances}
-          />
+          <InstanceSelector selectedInstances={selectedInstanceIds} setSelectedInstances={setSelectedInstanceIds} />
           <ScriptTabs
             scripts={scripts}
             activeScript={activeScript}
@@ -144,7 +147,7 @@ export function ExecutorPage() {
       {/* Toolbar */}
       <ActionToolbar
         onExecute={handleExecute}
-        onAttach={handleAttach}
+        onAttach={handleAttachToggle}
         onOpen={handleOpen}
         onSave={handleSave}
         onClear={handleClear}
@@ -155,13 +158,7 @@ export function ExecutorPage() {
       <CodeEditor value={currentScript?.content || ""} onChange={updateScriptContent} />
 
       {/* Hidden file input */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept=".lua,.txt"
-        onChange={handleFileChange}
-        className="hidden"
-      />
+      <input ref={fileInputRef} type="file" accept=".lua,.txt" onChange={handleFileChange} className="hidden" />
     </div>
   );
 }
