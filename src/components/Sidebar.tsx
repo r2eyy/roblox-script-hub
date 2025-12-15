@@ -1,4 +1,4 @@
-import { LayoutDashboard, Code, BookOpen, Users, Settings, ChevronLeft, ChevronRight } from "lucide-react";
+import { LayoutDashboard, Code, BookOpen, Users, Settings, ChevronLeft, ChevronRight, Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SidebarProps {
@@ -14,6 +14,7 @@ const menuItems = [
   { id: "scripthub", label: "Script Hub", icon: BookOpen },
   { id: "clients", label: "Client Manager", icon: Users },
   { id: "settings", label: "Settings", icon: Settings },
+  { id: "credits", label: "Credits", icon: Heart },
 ];
 
 export function Sidebar({ activeTab, setActiveTab, collapsed, setCollapsed }: SidebarProps) {
@@ -31,7 +32,7 @@ export function Sidebar({ activeTab, setActiveTab, collapsed, setCollapsed }: Si
             <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
               <Code className="w-5 h-5 text-primary" />
             </div>
-            <span className="font-semibold text-foreground text-gradient">Nova</span>
+            <span className="font-semibold text-foreground text-gradient">R2Exec</span>
           </div>
         )}
         <button
@@ -72,7 +73,7 @@ export function Sidebar({ activeTab, setActiveTab, collapsed, setCollapsed }: Si
       {/* Footer */}
       {!collapsed && (
         <div className="p-4 border-t border-sidebar-border">
-          <div className="text-xs text-muted-foreground">Version 2.1.0</div>
+          <div className="text-xs text-muted-foreground">Version 1.0.0</div>
         </div>
       )}
     </div>

@@ -1,32 +1,109 @@
-import { useState } from "react";
-import { Search, Download, Star, Clock, Code } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, Eye, Star, Download, Code, Copy, Play, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-const scripts = [
-  { id: 1, name: "Infinite Jump", desc: "Jump infinitely in any game", downloads: "12.4k", rating: 4.8, category: "Movement" },
-  { id: 2, name: "Speed Modifier", desc: "Adjust your walk speed", downloads: "8.2k", rating: 4.5, category: "Movement" },
-  { id: 3, name: "ESP Highlight", desc: "See players through walls", downloads: "15.1k", rating: 4.9, category: "Visual" },
-  { id: 4, name: "Fly Script", desc: "Fly around the map", downloads: "9.7k", rating: 4.6, category: "Movement" },
-  { id: 5, name: "NoClip", desc: "Walk through walls", downloads: "7.3k", rating: 4.4, category: "Movement" },
-  { id: 6, name: "Admin Commands", desc: "Basic admin commands", downloads: "11.2k", rating: 4.7, category: "Utility" },
-];
+interface Script {
+  _id: string;
+  title: string;
+  game: {
+    name: string;
+    imageUrl?: string;
+  };
+  script: string;
+  views: number;
+  verified: boolean;
+  key: boolean;
+  createdAt: string;
+  scriptType: string;
+}
 
-const categories = ["All", "Movement", "Visual", "Utility", "Combat"];
+interface ScriptBloxResponse {
+  result: {
+    scripts: Script[];
+    totalPages: number;
+  };
+}
 
 export function ScriptHubPage() {
   const [search, setSearch] = useState("");
-  const [activeCategory, setActiveCategory] = useState("All");
+  const [scripts, setScripts] = useState<Script[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [hasSearched, setHasSearched] = useState(false);
 
-  const filteredScripts = scripts.filter((script) => {
-    const matchesSearch = script.name.toLowerCase().includes(search.toLowerCase());
-    const matchesCategory = activeCategory === "All" || script.category === activeCategory;
-    return matchesSearch && matchesCategory;
-  });
+  const fetchScripts = async (query: string = "", pageNum: number = 1) => {
+    setLoading(true);
+    try {
+      const endpoint = query
+        ? `https://scriptblox.com/api/script/search?q=${encodeURIComponent(query)}&page=${pageNum}`
+        : `https://scriptblox.com/api/script/fetch?page=${pageNum}`;
+      
+      const response = await fetch(endpoint);
+      const data: ScriptBloxResponse = await response.json();
+      
+      if (data.result && data.result.scripts) {
+        setScripts(data.result.scripts);
+        setTotalPages(data.result.totalPages || 1);
+      }
+    } catch (error) {
+      console.error("Failed to fetch scripts:", error);
+      toast.error("Failed to fetch scripts from ScriptBlox");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const handleDownload = (name: string) => {
-    toast.success("Script loaded", {
-      description: `${name} has been loaded into the executor`,
+  useEffect(() => {
+    fetchScripts();
+    setHasSearched(true);
+  }, []);
+
+  const handleSearch = () => {
+    setPage(1);
+    fetchScripts(search, 1);
+    setHasSearched(true);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleSearch();
+    }
+  };
+
+  const handleCopy = (script: string, title: string) => {
+    navigator.clipboard.writeText(script);
+    toast.success(`Copied ${title} to clipboard`);
+  };
+
+  const handleExecute = (title: string) => {
+    toast.success(`Executing ${title}...`, {
+      description: "Script sent to executor",
     });
+  };
+
+  const handleOpenInTab = (script: Script) => {
+    // Store in localStorage for the executor to pick up
+    localStorage.setItem("loadedScript", JSON.stringify({
+      name: script.title,
+      content: script.script
+    }));
+    toast.success(`${script.title} loaded into executor tab`);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric"
+    });
+  };
+
+  const formatViews = (views: number) => {
+    if (views >= 1000) {
+      return `${(views / 1000).toFixed(1)}k`;
+    }
+    return views.toString();
   };
 
   return (
@@ -34,11 +111,11 @@ export function ScriptHubPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-foreground">Script Hub</h1>
-        <p className="text-muted-foreground">Browse and load popular scripts</p>
+        <p className="text-muted-foreground">Browse scripts from ScriptBlox</p>
       </div>
 
-      {/* Search & Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
+      {/* Search */}
+      <div className="flex gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
@@ -46,64 +123,149 @@ export function ScriptHubPage() {
             placeholder="Search scripts..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50"
+            onKeyPress={handleKeyPress}
+            className="w-full pl-10 pr-4 py-3 bg-secondary border border-border rounded-full text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50"
           />
         </div>
-        <div className="flex gap-2 flex-wrap">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={`px-3 py-1.5 rounded-lg text-sm transition-all ${
-                activeCategory === cat
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
+        <button
+          onClick={handleSearch}
+          className="flex items-center gap-2 px-6 py-3 bg-card border border-border rounded-full text-foreground hover:bg-secondary transition-all"
+        >
+          <Search className="w-4 h-4" />
+          Search
+        </button>
       </div>
 
+      {/* Loading State */}
+      {loading && (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        </div>
+      )}
+
       {/* Scripts Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredScripts.map((script) => (
-          <div
-            key={script.id}
-            className="bg-card border border-border rounded-xl p-4 hover:border-primary/30 transition-all group"
+      {!loading && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {scripts.map((script) => (
+            <div
+              key={script._id}
+              className="bg-card border border-border rounded-xl overflow-hidden hover:border-primary/30 transition-all"
+            >
+              {/* Script Image */}
+              <div className="relative h-40 bg-secondary">
+                {script.game.imageUrl ? (
+                  <img
+                    src={script.game.imageUrl}
+                    alt={script.game.name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = "https://via.placeholder.com/400x200?text=No+Image";
+                    }}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Code className="w-12 h-12 text-muted-foreground" />
+                  </div>
+                )}
+                {script.key && (
+                  <span className="absolute top-2 right-2 px-2 py-1 bg-primary/90 text-primary-foreground text-xs rounded-lg flex items-center gap-1">
+                    🔑 KEY
+                  </span>
+                )}
+              </div>
+
+              {/* Script Info */}
+              <div className="p-4">
+                <h3 className="font-semibold text-foreground mb-1 line-clamp-1">{script.title}</h3>
+                <div className="inline-block px-3 py-1 bg-secondary rounded-lg text-xs text-muted-foreground mb-3">
+                  {script.game.name}
+                </div>
+
+                {/* Stats */}
+                <div className="flex items-center gap-4 text-xs text-muted-foreground mb-4">
+                  <span className="flex items-center gap-1">
+                    <Eye className="w-3 h-3" />
+                    {formatViews(script.views)}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Star className="w-3 h-3" />
+                    0
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Download className="w-3 h-3" />
+                    free
+                  </span>
+                </div>
+
+                {/* Date and Actions */}
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">{formatDate(script.createdAt)}</span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleCopy(script.script, script.title)}
+                      className="p-2 bg-secondary rounded-lg text-muted-foreground hover:text-foreground transition-colors"
+                      title="Copy Script"
+                    >
+                      <Copy className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleOpenInTab(script)}
+                      className="px-3 py-1.5 bg-secondary rounded-lg text-sm text-foreground hover:bg-secondary/80 transition-all"
+                    >
+                      Open in Tab
+                    </button>
+                    <button
+                      onClick={() => handleExecute(script.title)}
+                      className="px-3 py-1.5 bg-primary/90 text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary transition-all"
+                    >
+                      Execute Script
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {!loading && hasSearched && totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2">
+          <button
+            onClick={() => {
+              const newPage = Math.max(1, page - 1);
+              setPage(newPage);
+              fetchScripts(search, newPage);
+            }}
+            disabled={page === 1}
+            className="px-4 py-2 bg-secondary border border-border rounded-lg text-foreground hover:bg-secondary/80 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
-            <div className="flex items-start justify-between mb-3">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <Code className="w-5 h-5 text-primary" />
-              </div>
-              <span className="text-xs px-2 py-1 bg-secondary rounded-full text-muted-foreground">
-                {script.category}
-              </span>
-            </div>
-            <h3 className="font-semibold text-foreground mb-1">{script.name}</h3>
-            <p className="text-sm text-muted-foreground mb-4">{script.desc}</p>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <Download className="w-3 h-3" />
-                  {script.downloads}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Star className="w-3 h-3 text-yellow-500" />
-                  {script.rating}
-                </span>
-              </div>
-              <button
-                onClick={() => handleDownload(script.name)}
-                className="px-3 py-1.5 bg-primary/10 text-primary rounded-lg text-sm font-medium hover:bg-primary hover:text-primary-foreground transition-all"
-              >
-                Load
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+            Previous
+          </button>
+          <span className="text-muted-foreground">
+            Page {page} of {totalPages}
+          </span>
+          <button
+            onClick={() => {
+              const newPage = Math.min(totalPages, page + 1);
+              setPage(newPage);
+              fetchScripts(search, newPage);
+            }}
+            disabled={page === totalPages}
+            className="px-4 py-2 bg-secondary border border-border rounded-lg text-foreground hover:bg-secondary/80 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          >
+            Next
+          </button>
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!loading && hasSearched && scripts.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+          <Code className="w-12 h-12 mb-4" />
+          <p>No scripts found</p>
+        </div>
+      )}
     </div>
   );
 }

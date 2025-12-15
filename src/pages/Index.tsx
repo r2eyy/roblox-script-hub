@@ -5,6 +5,7 @@ import { ExecutorPage } from "@/components/ExecutorPage";
 import { ScriptHubPage } from "@/components/ScriptHubPage";
 import { ClientManagerPage } from "@/components/ClientManagerPage";
 import { SettingsPage } from "@/components/SettingsPage";
+import { CreditsPage } from "@/components/CreditsPage";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("executor");
@@ -22,6 +23,8 @@ const Index = () => {
         return <ClientManagerPage />;
       case "settings":
         return <SettingsPage />;
+      case "credits":
+        return <CreditsPage />;
       default:
         return <ExecutorPage />;
     }
