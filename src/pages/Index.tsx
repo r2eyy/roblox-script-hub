@@ -32,18 +32,21 @@ const Index = () => {
 
   return (
     <ExecutorProvider>
-      <div className="min-h-screen w-full bg-background grid-bg relative overflow-hidden">
+      <div className="min-h-screen w-full bg-background relative overflow-hidden">
+        {/* Grid background */}
+        <div className="fixed inset-0 grid-bg pointer-events-none" />
+        
         {/* Ambient glow effects */}
         <div className="fixed top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-[150px] pointer-events-none" />
         <div className="fixed bottom-0 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[150px] pointer-events-none" />
         
         {/* Scanlines overlay */}
-        <div className="fixed inset-0 scanlines pointer-events-none z-50" />
+        <div className="fixed inset-0 scanlines pointer-events-none z-[60]" />
         
         {/* Layout */}
-        <div className="flex min-h-screen w-full">
+        <div className="flex min-h-screen w-full relative z-10">
           <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
-          <main className="flex-1 ml-20 overflow-auto custom-scrollbar">
+          <main className="flex-1 ml-20 overflow-auto custom-scrollbar min-h-screen">
             {renderPage()}
           </main>
         </div>
