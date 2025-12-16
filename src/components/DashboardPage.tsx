@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Activity, Code, Cpu, Clock, TrendingUp, Zap, Monitor, Download, Users, Unplug, XCircle, ExternalLink } from "lucide-react";
+import { Activity, Code, Cpu, Clock, TrendingUp, Zap, Monitor, Download, Users, Link2Off, XCircle, ExternalLink } from "lucide-react";
 import { useExecutor } from "@/context/executor-context";
 
 const recentScripts = [
@@ -39,26 +39,26 @@ export function DashboardPage() {
   ];
 
   return (
-    <div className="flex-1 p-6 space-y-6 overflow-y-auto editor-scrollbar">
+    <div className="flex-1 p-6 space-y-6 overflow-y-auto custom-scrollbar animate-fade-in">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+          <h1 className="text-3xl font-display font-bold text-foreground text-glow">Dashboard</h1>
           <p className="text-muted-foreground">Welcome back to R2Exec</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {isAttached ? (
             <button
               onClick={detach}
-              className="flex items-center gap-2 px-4 py-2 bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 rounded-lg font-medium hover:bg-yellow-500/30 transition-all"
+              className="flex items-center gap-2 px-4 py-2.5 glass rounded-xl text-status-online font-medium hover:glow-green transition-all"
             >
-              <Unplug className="w-4 h-4" />
+              <Link2Off className="w-4 h-4" />
               Detach
             </button>
           ) : (
             <button
               onClick={attach}
-              className="flex items-center gap-2 px-4 py-2 bg-primary/20 text-primary border border-primary/30 rounded-lg font-medium hover:bg-primary/30 transition-all"
+              className="flex items-center gap-2 px-4 py-2.5 glass rounded-xl text-primary font-medium hover:glow-red transition-all"
             >
               <Zap className="w-4 h-4" />
               Attach
@@ -66,7 +66,7 @@ export function DashboardPage() {
           )}
           <button
             onClick={killRoblox}
-            className="flex items-center gap-2 px-4 py-2 bg-destructive/20 text-destructive border border-destructive/30 rounded-lg font-medium hover:bg-destructive/30 transition-all"
+            className="flex items-center gap-2 px-4 py-2.5 glass rounded-xl text-destructive font-medium hover:bg-destructive/10 transition-all"
           >
             <XCircle className="w-4 h-4" />
             Kill Roblox
@@ -80,12 +80,12 @@ export function DashboardPage() {
           href="https://www.usa.gov"
           target="_blank"
           rel="noopener noreferrer"
-          className="bg-card border border-border rounded-xl p-5 hover:border-primary/30 transition-all group cursor-pointer"
+          className="glass rounded-xl p-5 hover:glow-red transition-all duration-300 group cursor-pointer corner-accent"
         >
           <div className="flex flex-col items-center text-center">
-            <Monitor className="w-8 h-8 text-muted-foreground mb-3 group-hover:text-primary transition-colors" />
+            <Monitor className="w-10 h-10 text-muted-foreground mb-3 group-hover:text-primary transition-colors" />
             <h3 className="font-semibold text-foreground mb-2">Visit Our Website</h3>
-            <div className="flex items-center gap-2 px-4 py-2 bg-secondary border border-border rounded-lg text-sm hover:bg-secondary/80 transition-all">
+            <div className="flex items-center gap-2 px-4 py-2 bg-secondary/50 rounded-lg text-sm">
               <ExternalLink className="w-4 h-4" />
               Open Website
             </div>
@@ -95,12 +95,12 @@ export function DashboardPage() {
           href="https://xeno.onl"
           target="_blank"
           rel="noopener noreferrer"
-          className="bg-card border border-border rounded-xl p-5 hover:border-primary/30 transition-all group cursor-pointer"
+          className="glass rounded-xl p-5 hover:glow-red transition-all duration-300 group cursor-pointer corner-accent"
         >
           <div className="flex flex-col items-center text-center">
-            <Download className="w-8 h-8 text-muted-foreground mb-3 group-hover:text-primary transition-colors" />
+            <Download className="w-10 h-10 text-muted-foreground mb-3 group-hover:text-primary transition-colors" />
             <h3 className="font-semibold text-foreground mb-2">Version: v1.0.0</h3>
-            <div className="flex items-center gap-2 px-4 py-2 bg-secondary border border-border rounded-lg text-sm hover:bg-secondary/80 transition-all">
+            <div className="flex items-center gap-2 px-4 py-2 bg-secondary/50 rounded-lg text-sm">
               <ExternalLink className="w-4 h-4" />
               Download Latest
             </div>
@@ -110,12 +110,12 @@ export function DashboardPage() {
           href="https://discord.gg/UScaGnBAxs"
           target="_blank"
           rel="noopener noreferrer"
-          className="bg-card border border-border rounded-xl p-5 hover:border-primary/30 transition-all group cursor-pointer"
+          className="glass rounded-xl p-5 hover:glow-red transition-all duration-300 group cursor-pointer corner-accent"
         >
           <div className="flex flex-col items-center text-center">
-            <Users className="w-8 h-8 text-muted-foreground mb-3 group-hover:text-primary transition-colors" />
+            <Users className="w-10 h-10 text-muted-foreground mb-3 group-hover:text-primary transition-colors" />
             <h3 className="font-semibold text-foreground mb-2">Join Our Community</h3>
-            <div className="flex items-center gap-2 px-4 py-2 bg-secondary border border-border rounded-lg text-sm hover:bg-secondary/80 transition-all">
+            <div className="flex items-center gap-2 px-4 py-2 bg-secondary/50 rounded-lg text-sm">
               <ExternalLink className="w-4 h-4" />
               Join Discord
             </div>
@@ -125,22 +125,26 @@ export function DashboardPage() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat) => {
+        {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <div key={stat.label} className="bg-card border border-border rounded-xl p-4 hover:border-primary/30 transition-all">
+            <div 
+              key={stat.label} 
+              className="glass rounded-xl p-5 hover:glow-red transition-all duration-300 animate-slide-up"
+              style={{ animationDelay: `${index * 100}ms` }}
+            >
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">{stat.label}</p>
-                  <p className="text-2xl font-bold text-foreground mt-1">{stat.value}</p>
+                  <p className="text-3xl font-display font-bold text-foreground mt-1">{stat.value}</p>
                 </div>
-                <div className="p-2 bg-primary/10 rounded-lg">
+                <div className="p-3 bg-primary/10 rounded-xl">
                   <Icon className="w-5 h-5 text-primary" />
                 </div>
               </div>
-              <div className="flex items-center gap-1 mt-3 text-xs">
-                <TrendingUp className="w-3 h-3 text-green-400" />
-                <span className="text-green-400">{stat.trend}</span>
+              <div className="flex items-center gap-1 mt-4 text-xs">
+                <TrendingUp className="w-3 h-3 text-status-online" />
+                <span className="text-status-online">{stat.trend}</span>
               </div>
             </div>
           );
@@ -148,34 +152,38 @@ export function DashboardPage() {
       </div>
 
       {/* Attach Status */}
-      <div className="bg-card border border-border rounded-xl p-5">
+      <div className="glass rounded-xl p-5 corner-accent">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-foreground">Attachment</h2>
-            <p className="text-sm text-muted-foreground">
+            <h2 className="text-lg font-display font-semibold text-foreground">Attachment Status</h2>
+            <p className="text-sm text-muted-foreground mt-1">
               {isAttached
-                ? `Attached to ${selectedInstanceIds.length} instance(s).`
-                : "Not attached. Add a client in Client Manager, select it, then Attach."}
+                ? `Connected to ${selectedInstanceIds.length} instance(s)`
+                : "Not attached. Select an instance and click Attach."}
             </p>
           </div>
-          <span className={`text-xs px-2 py-1 rounded-full ${isAttached ? "bg-green-500/20 text-green-400" : "bg-secondary text-muted-foreground"}`}>
-            {isAttached ? "Attached" : "Detached"}
-          </span>
+          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${isAttached ? "bg-status-online/20 text-status-online" : "bg-secondary text-muted-foreground"}`}>
+            <div className={`w-2 h-2 rounded-full ${isAttached ? "bg-status-online animate-pulse" : "bg-muted-foreground"}`} />
+            <span className="text-sm font-medium">{isAttached ? "Attached" : "Detached"}</span>
+          </div>
         </div>
       </div>
 
       {/* Recent Activity */}
-      <div className="bg-card border border-border rounded-xl p-5">
+      <div className="glass rounded-xl p-5 corner-accent">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-foreground">Recent Scripts</h2>
+          <h2 className="text-lg font-display font-semibold text-foreground">Recent Scripts</h2>
           <Zap className="w-5 h-5 text-primary" />
         </div>
-        <div className="space-y-3">
+        <div className="space-y-2">
           {recentScripts.map((script, i) => (
-            <div key={i} className="flex items-center justify-between py-3 border-b border-border last:border-0">
+            <div 
+              key={i} 
+              className="flex items-center justify-between py-3 px-4 rounded-lg hover:bg-secondary/30 transition-colors"
+            >
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center">
-                  <Code className="w-4 h-4 text-muted-foreground" />
+                <div className="w-10 h-10 rounded-lg bg-secondary/50 flex items-center justify-center">
+                  <Code className="w-5 h-5 text-muted-foreground" />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-foreground">{script.name}</p>
@@ -183,8 +191,8 @@ export function DashboardPage() {
                 </div>
               </div>
               <span
-                className={`text-xs px-2 py-1 rounded-full ${
-                  script.status === "success" ? "bg-green-500/20 text-green-400" : "bg-destructive/20 text-destructive"
+                className={`text-xs px-3 py-1 rounded-full ${
+                  script.status === "success" ? "bg-status-online/20 text-status-online" : "bg-destructive/20 text-destructive"
                 }`}
               >
                 {script.status}

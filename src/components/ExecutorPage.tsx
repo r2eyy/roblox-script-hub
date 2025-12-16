@@ -5,6 +5,7 @@ import { ScriptTabs } from "./ScriptTabs";
 import { CodeEditor } from "./CodeEditor";
 import { ActionToolbar } from "./ActionToolbar";
 import { useExecutor } from "@/context/executor-context";
+import { Activity, Zap } from "lucide-react";
 
 interface Script {
   id: string;
@@ -19,6 +20,7 @@ export function ExecutorPage() {
     isAttached,
     attach,
     detach,
+    killRoblox,
   } = useExecutor();
 
   const [scripts, setScripts] = useState<Script[]>([{ id: "1", name: "Script 1", content: "" }]);
@@ -86,9 +88,19 @@ export function ExecutorPage() {
     });
   };
 
-  const handleAttachToggle = () => {
-    if (isAttached) detach();
-    else attach();
+  const handleAttach = () => {
+    if (selectedInstanceIds.length === 0) {
+      toast.error("No instance selected", {
+        description: "Select an instance to attach to",
+      });
+      return;
+    }
+    attach();
+  };
+
+  const handleDetach = () => {
+    detach();
+    toast.info("Detached from instances");
   };
 
   const handleOpen = () => fileInputRef.current?.click();
@@ -128,8 +140,12 @@ export function ExecutorPage() {
     toast.info("Script cleared");
   };
 
+  const handleKillRoblox = () => {
+    killRoblox();
+  };
+
   return (
-    <div className="flex-1 flex flex-col h-full p-6 gap-4">
+    <div className="flex-1 flex flex-col h-full p-6 gap-4 animate-fade-in">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -142,15 +158,36 @@ export function ExecutorPage() {
             removeScript={removeScript}
           />
         </div>
+        
+        {/* Status Indicator */}
+        <div className="flex items-center gap-3 px-4 py-2 glass rounded-xl">
+          <div className="flex items-center gap-2">
+            <Activity className={`w-4 h-4 ${isAttached ? 'text-status-online' : 'text-muted-foreground'}`} />
+            <span className={`text-sm font-medium ${isAttached ? 'text-status-online' : 'text-muted-foreground'}`}>
+              {isAttached ? 'Attached' : 'Detached'}
+            </span>
+          </div>
+          {isAttached && (
+            <>
+              <div className="w-px h-4 bg-border" />
+              <div className="flex items-center gap-2">
+                <Zap className="w-4 h-4 text-primary" />
+                <span className="text-sm text-muted-foreground">{selectedInstanceIds.length} instance(s)</span>
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Toolbar */}
       <ActionToolbar
         onExecute={handleExecute}
-        onAttach={handleAttachToggle}
+        onAttach={handleAttach}
+        onDetach={handleDetach}
         onOpen={handleOpen}
         onSave={handleSave}
         onClear={handleClear}
+        onKillRoblox={handleKillRoblox}
         isAttached={isAttached}
       />
 

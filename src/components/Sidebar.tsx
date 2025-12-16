@@ -1,81 +1,72 @@
-import { LayoutDashboard, Code, BookOpen, Users, Settings, ChevronLeft, ChevronRight, Heart } from "lucide-react";
+import { LayoutDashboard, Code, BookOpen, Users, Settings, Heart, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SidebarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
-  collapsed: boolean;
-  setCollapsed: (collapsed: boolean) => void;
 }
 
 const menuItems = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { id: "executor", label: "Executor", icon: Code },
-  { id: "scripthub", label: "Script Hub", icon: BookOpen },
-  { id: "clients", label: "Client Manager", icon: Users },
+  { id: "scripthub", label: "Scripts", icon: BookOpen },
+  { id: "clients", label: "Clients", icon: Users },
   { id: "settings", label: "Settings", icon: Settings },
   { id: "credits", label: "Credits", icon: Heart },
 ];
 
-export function Sidebar({ activeTab, setActiveTab, collapsed, setCollapsed }: SidebarProps) {
+export function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
   return (
-    <div
-      className={cn(
-        "h-screen bg-sidebar border-r border-sidebar-border flex flex-col transition-all duration-300",
-        collapsed ? "w-16" : "w-56"
-      )}
-    >
+    <div className="fixed left-0 top-0 bottom-0 w-20 flex flex-col items-center py-6 z-50">
       {/* Logo */}
-      <div className="h-14 flex items-center justify-between px-4 border-b border-sidebar-border">
-        {!collapsed && (
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-              <Code className="w-5 h-5 text-primary" />
-            </div>
-            <span className="font-semibold text-foreground text-gradient">R2Exec</span>
-          </div>
-        )}
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="p-1.5 rounded-md hover:bg-sidebar-accent transition-colors text-sidebar-foreground"
-        >
-          {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-        </button>
+      <div className="mb-8 relative group">
+        <div className="w-12 h-12 rounded-xl glass flex items-center justify-center cursor-pointer transition-all duration-300 group-hover:glow-red">
+          <Zap className="w-6 h-6 text-primary" />
+        </div>
+        <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 px-3 py-1.5 glass rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+          <span className="font-display text-sm text-glow">R2Exec</span>
+        </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 p-3 space-y-1">
-        {menuItems.map((item) => {
+      {/* Navigation Dock */}
+      <nav className="flex-1 flex flex-col items-center gap-2">
+        {menuItems.map((item, index) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
           return (
-            <button
-              key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              className={cn(
-                "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200",
-                isActive
-                  ? "bg-primary/10 text-primary border border-primary/30"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-              )}
-            >
-              <Icon className={cn("w-5 h-5 flex-shrink-0", isActive && "text-primary")} />
-              {!collapsed && (
-                <span className={cn("text-sm font-medium", isActive && "text-primary")}>
-                  {item.label}
-                </span>
-              )}
-            </button>
+            <div key={item.id} className="relative group">
+              <button
+                onClick={() => setActiveTab(item.id)}
+                className={cn(
+                  "dock-item w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300",
+                  isActive
+                    ? "glass glow-red active"
+                    : "hover:glass hover:bg-card/40"
+                )}
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
+                <Icon
+                  className={cn(
+                    "w-5 h-5 transition-colors duration-300",
+                    isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+                  )}
+                />
+              </button>
+              {/* Tooltip */}
+              <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 px-3 py-1.5 glass rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 whitespace-nowrap pointer-events-none translate-x-2 group-hover:translate-x-0">
+                <span className="text-sm font-medium">{item.label}</span>
+              </div>
+            </div>
           );
         })}
       </nav>
 
-      {/* Footer */}
-      {!collapsed && (
-        <div className="p-4 border-t border-sidebar-border">
-          <div className="text-xs text-muted-foreground">Version 1.0.0</div>
+      {/* Version */}
+      <div className="mt-auto">
+        <div className="text-[10px] text-muted-foreground font-mono rotate-180 writing-mode-vertical">
+          v1.0.0
         </div>
-      )}
+      </div>
     </div>
   );
 }
