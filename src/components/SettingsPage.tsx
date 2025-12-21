@@ -1,333 +1,214 @@
-import { useState } from "react";
 import { toast } from "sonner";
-import { Save, RotateCcw, FolderOpen } from "lucide-react";
+import { Save, RotateCcw, FolderOpen, Check } from "lucide-react";
+import { useSettings } from "@/context/settings-context";
+import { cn } from "@/lib/utils";
+
+const pageOptions = [
+  { id: "dashboard", label: "Dashboard" },
+  { id: "executor", label: "Executor" },
+  { id: "scripthub", label: "Script Hub" },
+  { id: "clients", label: "Clients" },
+];
 
 export function SettingsPage() {
-  const [settings, setSettings] = useState({
-    autoAttach: false,
-    alwaysOnTop: false,
-    systemTray: false,
-    discordRPC: false,
-    redirectErrors: false,
-    redirectOutput: false,
-    debugConsole: false,
-    notificationSound: true,
-    restoreLastPage: false,
-    defaultPage: "Dashboard",
-    autoSaveWindowSize: true,
-    autoSaveSidebarWidth: true,
-    editorFontSize: 14,
-  });
+  const { settings, updateSetting, resetSettings, saveSettings } = useSettings();
 
   const handleSave = () => {
-    toast.success("Settings saved", {
-      description: "Your preferences have been updated",
-    });
+    saveSettings();
+    toast.success("Settings saved");
   };
 
   const handleReset = () => {
-    setSettings({
-      autoAttach: false,
-      alwaysOnTop: false,
-      systemTray: false,
-      discordRPC: false,
-      redirectErrors: false,
-      redirectOutput: false,
-      debugConsole: false,
-      notificationSound: true,
-      restoreLastPage: false,
-      defaultPage: "Dashboard",
-      autoSaveWindowSize: true,
-      autoSaveSidebarWidth: true,
-      editorFontSize: 14,
-    });
+    resetSettings();
     toast.info("Settings reset to defaults");
   };
 
-  const handleOpenFolder = (folder: string) => {
-    toast.info(`Opening ${folder} folder...`);
-  };
-
-  const pageOptions = ["Dashboard", "Executor", "Scripthub", "Client Manager", "Settings"];
-
   return (
-    <div className="flex-1 p-6 space-y-4 overflow-y-auto editor-scrollbar">
-      {/* Header */}
+    <div className="p-6 max-w-4xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Settings</h1>
-        <p className="text-muted-foreground">Configure your executor preferences</p>
+        <h1 className="text-2xl font-bold">Settings</h1>
+        <p className="text-muted-foreground">Configure your preferences</p>
       </div>
 
       {/* Folders */}
-      <div className="bg-card border border-border rounded-xl p-5">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="font-semibold text-foreground">Folders</p>
-            <p className="text-sm text-muted-foreground">Quickly open important R2Exec folders</p>
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => handleOpenFolder("Workspace")}
-              className="flex items-center gap-2 px-4 py-2 bg-secondary border border-border rounded-lg text-sm hover:bg-secondary/80 transition-all"
-            >
-              <FolderOpen className="w-4 h-4" />
-              Open Workspace
-            </button>
-            <button
-              onClick={() => handleOpenFolder("Autoexec")}
-              className="flex items-center gap-2 px-4 py-2 bg-secondary border border-border rounded-lg text-sm hover:bg-secondary/80 transition-all"
-            >
-              <FolderOpen className="w-4 h-4" />
-              Open Autoexec
-            </button>
-          </div>
+      <Section title="Folders" description="Quick access to important folders">
+        <div className="flex gap-2">
+          <button onClick={() => toast.info("Opening Workspace...")} className="btn-secondary">
+            <FolderOpen className="w-4 h-4" /> Open Workspace
+          </button>
+          <button onClick={() => toast.info("Opening Autoexec...")} className="btn-secondary">
+            <FolderOpen className="w-4 h-4" /> Open Autoexec
+          </button>
         </div>
+      </Section>
+
+      {/* Toggles Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Toggle
+          label="Auto Attach"
+          description="Automatically attach when Roblox is detected"
+          checked={settings.autoAttach}
+          onChange={(v) => updateSetting("autoAttach", v)}
+        />
+        <Toggle
+          label="Always on Top"
+          description="Keep window above other applications"
+          checked={settings.alwaysOnTop}
+          onChange={(v) => updateSetting("alwaysOnTop", v)}
+        />
+        <Toggle
+          label="System Tray"
+          description="Minimize to tray instead of closing"
+          checked={settings.systemTray}
+          onChange={(v) => updateSetting("systemTray", v)}
+        />
+        <Toggle
+          label="Discord RPC"
+          description="Show status in Discord"
+          checked={settings.discordRPC}
+          onChange={(v) => updateSetting("discordRPC", v)}
+        />
+        <Toggle
+          label="Redirect Errors"
+          description="Redirect script errors to console"
+          checked={settings.redirectErrors}
+          onChange={(v) => updateSetting("redirectErrors", v)}
+        />
+        <Toggle
+          label="Redirect Output"
+          description="Redirect print output to console"
+          checked={settings.redirectOutput}
+          onChange={(v) => updateSetting("redirectOutput", v)}
+        />
+        <Toggle
+          label="Debug Console"
+          description="Enable debug console window"
+          checked={settings.debugConsole}
+          onChange={(v) => updateSetting("debugConsole", v)}
+        />
+        <Toggle
+          label="Notification Sound"
+          description="Play sound for notifications"
+          checked={settings.notificationSound}
+          onChange={(v) => updateSetting("notificationSound", v)}
+        />
+        <Toggle
+          label="Restore Last Page"
+          description="Open last page on restart"
+          checked={settings.restoreLastPage}
+          onChange={(v) => updateSetting("restoreLastPage", v)}
+        />
       </div>
-
-      {/* Settings Toggles */}
-      <SettingToggle
-        label="Always on Top"
-        description="Keep R2Exec window above other applications"
-        checked={settings.alwaysOnTop}
-        onChange={(checked) => setSettings({ ...settings, alwaysOnTop: checked })}
-      />
-
-      <SettingToggle
-        label="Auto Attach"
-        description="Automatically attach to Roblox processes"
-        checked={settings.autoAttach}
-        onChange={(checked) => setSettings({ ...settings, autoAttach: checked })}
-      />
-
-      <SettingToggle
-        label="System Tray"
-        description="Hide to tray instead of quitting when closing"
-        checked={settings.systemTray}
-        onChange={(checked) => setSettings({ ...settings, systemTray: checked })}
-      />
-
-      <SettingToggle
-        label="Discord RPC"
-        description="Show R2Exec status in Discord"
-        checked={settings.discordRPC}
-        onChange={(checked) => setSettings({ ...settings, discordRPC: checked })}
-      />
-
-      <SettingToggle
-        label="Redirect Errors"
-        description="Redirect script errors to console"
-        checked={settings.redirectErrors}
-        onChange={(checked) => setSettings({ ...settings, redirectErrors: checked })}
-      />
-
-      <SettingToggle
-        label="Redirect Output"
-        description="Redirect script output to console"
-        checked={settings.redirectOutput}
-        onChange={(checked) => setSettings({ ...settings, redirectOutput: checked })}
-      />
-
-      <SettingToggle
-        label="Debug Console"
-        description="Enable console window for debugging"
-        checked={settings.debugConsole}
-        onChange={(checked) => setSettings({ ...settings, debugConsole: checked })}
-      />
-
-      <SettingToggle
-        label="Notification Sound"
-        description="Play a sound when in-app notifications appear"
-        checked={settings.notificationSound}
-        onChange={(checked) => setSettings({ ...settings, notificationSound: checked })}
-      />
-
-      <SettingToggle
-        label="Restore Last Page"
-        description="Automatically open the last viewed page when R2Exec starts"
-        checked={settings.restoreLastPage}
-        onChange={(checked) => setSettings({ ...settings, restoreLastPage: checked })}
-      />
 
       {/* Default Page */}
-      <div className="bg-card border border-border rounded-xl p-5">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="font-semibold text-foreground">Default Page on Restart</p>
-            <p className="text-sm text-muted-foreground">Choose which page to open when R2Exec starts</p>
-          </div>
-          <div className="flex gap-2">
-            {pageOptions.map((page) => (
-              <button
-                key={page}
-                onClick={() => setSettings({ ...settings, defaultPage: page })}
-                className={`px-3 py-1.5 rounded-lg text-sm transition-all ${
-                  settings.defaultPage === page
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-secondary text-foreground hover:bg-secondary/80"
-                }`}
-              >
-                {page}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Window Size */}
-      <div className="bg-card border border-border rounded-xl p-5">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="font-semibold text-foreground">Window Size</p>
-            <p className="text-sm text-muted-foreground">Auto-save enabled - window size will be saved automatically</p>
-            <div className="flex items-center gap-2 mt-2">
-              <span className="text-sm text-muted-foreground">Auto-save</span>
-              <button
-                onClick={() => setSettings({ ...settings, autoSaveWindowSize: !settings.autoSaveWindowSize })}
-                className={`w-11 h-6 rounded-full transition-all relative ${
-                  settings.autoSaveWindowSize ? "bg-primary" : "bg-secondary"
-                }`}
-              >
-                <div
-                  className={`w-5 h-5 rounded-full bg-foreground absolute top-0.5 transition-all ${
-                    settings.autoSaveWindowSize ? "left-5" : "left-0.5"
-                  }`}
-                />
-              </button>
-            </div>
-          </div>
-          <div className="flex flex-col items-end gap-2">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span>📱</span>
-              <span>1179px × 619px</span>
-            </div>
-            <div className="flex gap-2">
-              <button className="px-3 py-1.5 bg-secondary border border-border rounded-lg text-sm hover:bg-secondary/80 transition-all">
-                Update Size
-              </button>
-              <button className="px-3 py-1.5 bg-secondary border border-border rounded-lg text-sm hover:bg-secondary/80 transition-all">
-                Reset
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Sidebar Width */}
-      <div className="bg-card border border-border rounded-xl p-5">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="font-semibold text-foreground">Sidebar Width</p>
-            <p className="text-sm text-muted-foreground">Auto-save enabled - sidebar width will be saved automatically</p>
-            <div className="flex items-center gap-2 mt-2">
-              <span className="text-sm text-muted-foreground">Auto-save</span>
-              <button
-                onClick={() => setSettings({ ...settings, autoSaveSidebarWidth: !settings.autoSaveSidebarWidth })}
-                className={`w-11 h-6 rounded-full transition-all relative ${
-                  settings.autoSaveSidebarWidth ? "bg-primary" : "bg-secondary"
-                }`}
-              >
-                <div
-                  className={`w-5 h-5 rounded-full bg-foreground absolute top-0.5 transition-all ${
-                    settings.autoSaveSidebarWidth ? "left-5" : "left-0.5"
-                  }`}
-                />
-              </button>
-            </div>
-          </div>
-          <div className="flex flex-col items-end gap-2">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span>📱</span>
-              <span>280px</span>
-            </div>
-            <div className="flex gap-2">
-              <button className="px-3 py-1.5 bg-secondary border border-border rounded-lg text-sm hover:bg-secondary/80 transition-all">
-                Update Width
-              </button>
-              <button className="px-3 py-1.5 bg-secondary border border-border rounded-lg text-sm hover:bg-secondary/80 transition-all">
-                Reset
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Editor */}
-      <div className="bg-card border border-border rounded-xl p-5">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="font-semibold text-foreground">Editor Font Size</p>
-            <p className="text-sm text-muted-foreground">Adjust the editor font size</p>
-          </div>
-          <div className="flex items-center gap-2">
+      <Section title="Default Page" description="Page to open on startup (when not restoring last page)">
+        <div className="flex flex-wrap gap-2">
+          {pageOptions.map((page) => (
             <button
-              onClick={() => setSettings({ ...settings, editorFontSize: Math.max(10, settings.editorFontSize - 1) })}
-              className="w-8 h-8 rounded-lg bg-secondary text-foreground hover:bg-secondary/80 transition-colors"
+              key={page.id}
+              onClick={() => updateSetting("defaultPage", page.id)}
+              className={cn(
+                "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+                settings.defaultPage === page.id
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+              )}
             >
-              -
+              {page.label}
             </button>
-            <span className="w-12 text-center text-foreground">{settings.editorFontSize}px</span>
-            <button
-              onClick={() => setSettings({ ...settings, editorFontSize: Math.min(24, settings.editorFontSize + 1) })}
-              className="w-8 h-8 rounded-lg bg-secondary text-foreground hover:bg-secondary/80 transition-colors"
-            >
-              +
-            </button>
-          </div>
+          ))}
         </div>
+      </Section>
+
+      {/* Editor Font Size */}
+      <Section title="Editor Font Size" description="Adjust the code editor font size">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => updateSetting("editorFontSize", Math.max(10, settings.editorFontSize - 1))}
+            className="w-10 h-10 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors text-lg font-medium"
+          >
+            −
+          </button>
+          <div className="w-20 text-center">
+            <span className="text-2xl font-mono font-bold">{settings.editorFontSize}</span>
+            <span className="text-muted-foreground text-sm ml-1">px</span>
+          </div>
+          <button
+            onClick={() => updateSetting("editorFontSize", Math.min(24, settings.editorFontSize + 1))}
+            className="w-10 h-10 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors text-lg font-medium"
+          >
+            +
+          </button>
+        </div>
+      </Section>
+
+      {/* Auto-save Toggles */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Toggle
+          label="Auto-save Window Size"
+          description="Remember window dimensions"
+          checked={settings.autoSaveWindowSize}
+          onChange={(v) => updateSetting("autoSaveWindowSize", v)}
+        />
+        <Toggle
+          label="Auto-save Sidebar Width"
+          description="Remember sidebar width"
+          checked={settings.autoSaveSidebarWidth}
+          onChange={(v) => updateSetting("autoSaveSidebarWidth", v)}
+        />
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-3 pt-4">
-        <button
-          onClick={handleSave}
-          className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-all"
-        >
-          <Save className="w-4 h-4" />
-          Save Settings
+      <div className="flex gap-3 pt-4 border-t border-border">
+        <button onClick={handleSave} className="btn-primary">
+          <Save className="w-4 h-4" /> Save Settings
         </button>
-        <button
-          onClick={handleReset}
-          className="flex items-center gap-2 px-4 py-2 bg-secondary border border-border text-secondary-foreground rounded-lg font-medium hover:bg-secondary/80 transition-all"
-        >
-          <RotateCcw className="w-4 h-4" />
-          Reset to Defaults
+        <button onClick={handleReset} className="btn-secondary">
+          <RotateCcw className="w-4 h-4" /> Reset to Defaults
         </button>
       </div>
     </div>
   );
 }
 
-function SettingToggle({
-  label,
-  description,
-  checked,
-  onChange,
-}: {
-  label: string;
-  description: string;
-  checked: boolean;
-  onChange: (checked: boolean) => void;
+function Section({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
+  return (
+    <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+      <div>
+        <h3 className="font-semibold">{title}</h3>
+        <p className="text-sm text-muted-foreground">{description}</p>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function Toggle({ label, description, checked, onChange }: { 
+  label: string; 
+  description: string; 
+  checked: boolean; 
+  onChange: (v: boolean) => void;
 }) {
   return (
-    <div className="bg-card border border-border rounded-xl p-5">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="font-semibold text-foreground">{label}</p>
-          <p className="text-sm text-muted-foreground">{description}</p>
-        </div>
-        <button
-          onClick={() => onChange(!checked)}
-          className={`w-11 h-6 rounded-full transition-all relative ${
-            checked ? "bg-primary" : "bg-secondary"
-          }`}
-        >
-          <div
-            className={`w-5 h-5 rounded-full bg-foreground absolute top-0.5 transition-all ${
-              checked ? "left-5" : "left-0.5"
-            }`}
-          />
-        </button>
+    <div className="bg-card border border-border rounded-xl p-4 flex items-center justify-between gap-4">
+      <div className="min-w-0">
+        <p className="font-medium truncate">{label}</p>
+        <p className="text-sm text-muted-foreground truncate">{description}</p>
       </div>
+      <button
+        onClick={() => onChange(!checked)}
+        className={cn(
+          "w-12 h-7 rounded-full transition-colors relative shrink-0",
+          checked ? "bg-primary" : "bg-secondary"
+        )}
+      >
+        <div
+          className={cn(
+            "absolute top-1 w-5 h-5 rounded-full bg-foreground transition-all",
+            checked ? "left-6" : "left-1"
+          )}
+        />
+      </button>
     </div>
   );
 }
